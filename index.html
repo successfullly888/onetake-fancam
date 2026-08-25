@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="一键直拍：从多人横屏视频中选择一个人物，生成 9:16 动态运镜或原画幅主体柔焦 AI 直拍。"
+    />
+    <title>一键直拍｜AI 人物直拍生成器</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="一键直拍首页">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span><span></span>
+          </span>
+          <span>
+            <strong>一键直拍</strong>
+            <small>ONE TAKE</small>
+          </span>
+        </a>
+
+        <div class="product-thesis" aria-hidden="true">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          HUMAN-IN-THE-LOOP AI VIDEO
+        </div>
+
+        <button class="ghost-button" id="open-principles" type="button" hidden>
+          为什么这样设计？
+        </button>
+      </header>
+
+      <main>
+        <section class="intro-row" aria-labelledby="page-title">
+          <div>
+            <p class="eyebrow">AI 人物直拍</p>
+            <h1 id="page-title">选定一个人，<br />生成专属直拍</h1>
+          </div>
+          <p class="intro-copy">
+            上传横屏视频，选择人物，生成竖屏或横屏直拍。
+          </p>
+        </section>
+
+        <nav class="stepper" aria-label="制作进度">
+          <button class="step is-active" type="button" data-step="1" aria-current="step">
+            <span class="step-index">01</span>
+            <span><strong>剪片段</strong></span>
+          </button>
+          <span class="step-line"></span>
+          <button class="step" type="button" data-step="2" disabled>
+            <span class="step-index">02</span>
+            <span><strong>选人物</strong></span>
+          </button>
+          <span class="step-line"></span>
+          <button class="step" type="button" data-step="3" disabled>
+            <span class="step-index">03</span>
+            <span><strong>跟踪生成</strong></span>
+          </button>
+        </nav>
+
+        <section id="trim-stage" class="stage-section">
+          <div class="editor-grid">
+            <article class="video-card">
+              <div class="video-stage" id="video-stage">
+                <div class="empty-state" id="empty-state">
+                  <div class="empty-icon" aria-hidden="true">
+                    <span class="play-triangle"></span>
+                  </div>
+                  <p class="empty-kicker">上传横屏视频</p>
+                  <h2>拖入视频或从设备选择</h2>
+                  <p>MP4、MOV、MKV</p>
+                  <label class="primary-button upload-button" for="video-input">
+                    选择视频
+                  </label>
+                </div>
+
+                <video id="video" controls playsinline hidden></video>
+                <div class="video-corner-label" id="video-corner-label" hidden>
+                  ORIGINAL · 16:9
+                </div>
+              </div>
+
+              <footer class="video-footer">
+                <div>
+                  <span class="meta-label">当前画面</span>
+                  <strong id="current-time">00:00.0</strong>
+                </div>
+                <div class="video-file-meta" id="video-file-meta">
+                  <span>尚未选择视频</span>
+                </div>
+              </footer>
+            </article>
+
+            <aside class="control-card">
+              <div class="control-number">01</div>
+              <h2>选择保留片段</h2>
+              <p class="control-lead">
+                拖动时间轴两端，留下要处理的部分。
+              </p>
+
+              <div class="tip-list">
+                <div>
+                  <span class="tip-icon">1</span>
+                  <p><strong>上传原片</strong><small>不会修改你的源文件</small></p>
+                </div>
+                <div>
+                  <span class="tip-icon">2</span>
+                  <p><strong>拖动时间轴两端</strong><small>高亮区域就是保留片段</small></p>
+                </div>
+                <div>
+                  <span class="tip-icon">3</span>
+                  <p><strong>确认后交给 AI</strong><small>系统将自动寻找合适的选人画面</small></p>
+                </div>
+              </div>
+
+              <label class="secondary-upload" for="video-input">
+                <span>＋</span>
+                <span><strong>选择或更换视频</strong><small>从设备选择文件</small></span>
+              </label>
+              <input id="video-input" type="file" accept="video/mp4,video/quicktime,video/x-matroska,.mp4,.mov,.mkv" hidden />
+
+              <button class="primary-button next-button" id="continue-button" type="button" disabled>
+                下一步：选择人物
+                <span aria-hidden="true">→</span>
+              </button>
+              <p class="privacy-note"><span aria-hidden="true">◇</span> 当前测试版在本机处理</p>
+            </aside>
+          </div>
+
+          <article class="timeline-card" id="timeline-card">
+            <header class="timeline-header">
+              <div>
+                <p class="eyebrow">保留片段</p>
+                <h2><span id="range-start">00:00.0</span><i>→</i><span id="range-end">00:00.0</span></h2>
+              </div>
+              <div class="duration-pill">
+                成片时长 <strong id="selected-duration">00:00.0</strong>
+              </div>
+            </header>
+
+            <div class="timeline-workspace" id="timeline-workspace">
+              <div class="filmstrip" id="filmstrip" aria-hidden="true">
+                <div class="filmstrip-empty">上传视频后，这里会生成画面缩略时间轴</div>
+              </div>
+              <div class="timeline-mask mask-left" id="mask-left"></div>
+              <div class="timeline-mask mask-right" id="mask-right"></div>
+              <div class="selection-outline" id="selection-outline"></div>
+              <div class="playhead" id="playhead"><span></span></div>
+              <input class="range-input range-start" id="start-range" type="range" min="0" max="100" step="0.01" value="0" aria-label="片段开始时间" disabled />
+              <input class="range-input range-end" id="end-range" type="range" min="0" max="100" step="0.01" value="100" aria-label="片段结束时间" disabled />
+            </div>
+
+            <div class="timeline-ticks" aria-hidden="true">
+              <span>00:00</span><span>25%</span><span>50%</span><span>75%</span><span id="full-duration">00:00</span>
+            </div>
+
+            <footer class="timeline-actions">
+              <button class="text-button" id="set-start-button" type="button" disabled>将当前画面设为起点</button>
+              <button class="round-play" id="play-selection-button" type="button" disabled><span>▶</span> 预览保留片段</button>
+              <button class="text-button" id="set-end-button" type="button" disabled>将当前画面设为终点</button>
+            </footer>
+          </article>
+        </section>
+
+        <section id="select-stage" class="stage-section" hidden>
+          <div class="selection-layout">
+            <article class="representative-card">
+              <header>
+                <div>
+                  <p class="eyebrow">选择人物</p>
+                  <h2>点击要跟拍的人</h2>
+                </div>
+                <span class="build-badge">阶段 2 · 本地人物检测</span>
+              </header>
+              <div class="frame-stage" id="frame-stage">
+                <img id="representative-frame" alt="系统从保留片段中选择的清晰代表画面" />
+                <div class="person-overlay" id="person-overlay" aria-label="检测到的人物候选"></div>
+                <div class="frame-loading" id="frame-loading">
+                  <span class="spinner"></span>
+                  <strong id="frame-status">正在把视频交给本地 AI…</strong>
+                  <small id="frame-status-detail">抽帧、检测人物并比较候选画面</small>
+                </div>
+                <div class="analysis-error" id="analysis-error" hidden>
+                  <span>!</span>
+                  <strong id="analysis-error-title">人物分析失败</strong>
+                  <p id="analysis-error-hint">请返回第一步重试。</p>
+                  <button class="secondary-button" id="retry-analysis" type="button">重新分析</button>
+                </div>
+              </div>
+              <footer class="candidate-toolbar" id="candidate-toolbar" hidden>
+                <button class="candidate-arrow" id="previous-candidate" type="button" aria-label="上一张候选画面">←</button>
+                <div>
+                  <strong id="candidate-caption">候选画面 1 / 3</strong>
+                  <span id="candidate-reason">综合评分最高</span>
+                </div>
+                <div class="candidate-dots" id="candidate-dots" aria-label="候选画面列表"></div>
+                <button class="candidate-arrow" id="next-candidate" type="button" aria-label="下一张候选画面">→</button>
+              </footer>
+            </article>
+
+            <aside class="analysis-card">
+              <p class="eyebrow">已识别人物</p>
+              <h2>确认目标人物</h2>
+              <div class="pipeline-list">
+                <div class="is-done"><span>✓</span><p><strong>保留片段</strong><small id="analysis-range">—</small></p></div>
+                <div id="frame-pipeline"><span>02</span><p><strong>抽帧并选择代表画面</strong><small>人数、清晰度与遮挡综合评分</small></p></div>
+                <div class="is-next" id="detection-pipeline"><span>03</span><p><strong>理解主舞区与周边人物</strong><small>结合整段人数、位置、景深与前景遮挡</small></p></div>
+                <div class="is-next" id="selection-pipeline"><span>04</span><p><strong>点击人物编号圆点</strong><small>没有正确候选时，直接点击人物躯干建立人工锚点</small></p></div>
+              </div>
+
+              <div class="analysis-metrics" id="analysis-metrics" hidden>
+                <div><strong id="metric-people">—</strong><small>主舞候选</small></div>
+                <div><strong id="metric-time">—</strong><small>画面时刻</small></div>
+                <div><strong id="metric-elapsed">—</strong><small>分析耗时</small></div>
+              </div>
+
+              <div class="selection-summary" id="selection-summary" hidden>
+                <span class="selected-person-index" id="selected-person-index">01</span>
+                <div>
+                  <small>已选择目标人物</small>
+                  <strong id="selected-person-label">人物 1</strong>
+                  <p id="selected-person-confidence">检测置信度 —</p>
+                </div>
+                <span class="selection-check">✓</span>
+              </div>
+
+              <div class="detector-note" id="detector-note">
+                <span class="local-dot"></span>
+                <p><strong>AI 人物检测</strong><small id="detector-name">正在连接人物检测服务…</small></p>
+              </div>
+
+              <button class="primary-button confirm-subject-button" id="confirm-subject-button" type="button" disabled>
+                确认并开始跟踪 <span>→</span>
+              </button>
+              <button class="secondary-button" id="back-to-trim" type="button">← 返回调整片段</button>
+            </aside>
+          </div>
+        </section>
+
+        <section id="track-stage" class="stage-section" hidden>
+          <div class="tracking-layout">
+            <article class="tracking-review-card">
+              <header>
+                <div>
+                  <p class="eyebrow">身份跟踪</p>
+                  <h2>检查是否跟对了人</h2>
+                </div>
+                <span class="build-badge">阶段 3 · 双向跟踪 + 人工纠正</span>
+              </header>
+
+              <div class="tracking-review-body">
+                <div class="tracking-loading" id="tracking-loading">
+                  <span class="spinner"></span>
+                  <strong id="tracking-status">正在从身份锚点向前、向后跟踪…</strong>
+                  <small id="tracking-status-detail">人物检测、外观匹配与运动连续性分析</small>
+                </div>
+                <div class="tracking-error" id="tracking-error" hidden>
+                  <span>!</span>
+                  <strong id="tracking-error-title">身份跟踪失败</strong>
+                  <p id="tracking-error-hint">请返回上一阶段重新选择人物。</p>
+                  <button class="secondary-button" id="retry-tracking" type="button">重新跟踪</button>
+                </div>
+                <div class="tracking-qa-grid" id="tracking-qa-grid" hidden></div>
+                <section class="tracking-correction-editor" id="tracking-correction-editor" hidden>
+                  <header>
+                    <div>
+                      <p class="eyebrow">人工纠正锚点</p>
+                      <h3>重新点击这一帧里的正确人物</h3>
+                    </div>
+                    <strong id="tracking-correction-time">—</strong>
+                  </header>
+                  <p class="tracking-correction-help">点击编号圆点，或直接点击正确人物的躯干。可暂存多个纠偏点后统一重算。</p>
+                  <div class="tracking-correction-frame" id="tracking-correction-frame">
+                    <img id="tracking-correction-image" alt="用于重新选择人物的原始画面">
+                    <div class="tracking-correction-overlay" id="tracking-correction-overlay"></div>
+                  </div>
+                  <footer>
+                    <p id="tracking-correction-selection">请选择正确人物</p>
+                    <div>
+                      <button class="secondary-button" id="cancel-tracking-correction" type="button">关闭纠偏</button>
+                      <button class="secondary-button" id="reset-tracking-correction" type="button" disabled>撤销本次点选</button>
+                      <button class="primary-button" id="confirm-tracking-correction" type="button" disabled>暂存这个纠偏点</button>
+                    </div>
+                  </footer>
+                </section>
+                <section class="pending-corrections-panel" id="pending-corrections-panel" hidden>
+                  <div>
+                    <p class="eyebrow">待统一应用</p>
+                    <h3>已暂存 <strong id="pending-corrections-count">0</strong> 个纠偏点</h3>
+                    <p>检查完成后统一重算一次轨迹。</p>
+                  </div>
+                  <div class="pending-corrections-list" id="pending-corrections-list"></div>
+                  <footer>
+                    <button class="secondary-button" id="clear-tracking-corrections" type="button">清空纠偏点</button>
+                    <button class="primary-button" id="apply-tracking-corrections" type="button">统一应用并重算轨迹</button>
+                  </footer>
+                </section>
+              </div>
+            </article>
+
+            <aside class="tracking-summary-card">
+              <p class="eyebrow">跟踪结果</p>
+              <h2>确认跟踪结果</h2>
+
+              <div class="tracking-subject-chip">
+                <span>03</span>
+                <p><small>当前身份锚点</small><strong id="tracking-subject-label">已选择人物</strong><em id="tracking-subject-time">—</em></p>
+              </div>
+
+              <div class="tracking-metrics">
+                <div><strong id="tracking-metric-coverage">—</strong><small>检测覆盖率</small></div>
+                <div><strong id="tracking-metric-confidence">—</strong><small>平均置信度</small></div>
+                <div><strong id="tracking-metric-samples">—</strong><small>轨迹采样点</small></div>
+              </div>
+
+              <div class="tracking-reliability">
+                <div><strong>可靠轨迹比例</strong><span id="tracking-reliability-label">等待分析</span></div>
+                <div class="tracking-reliability-track"><span id="tracking-reliability-fill"></span></div>
+              </div>
+
+              <div class="tracking-review-panel">
+                <strong>需要重点复核</strong>
+                <div id="tracking-review-list"><p>跟踪完成后显示遮挡或身份不确定区间。</p></div>
+              </div>
+
+              <div class="detector-note">
+                <span class="local-dot"></span>
+                <p><strong>本地双向跟踪</strong><small id="tracking-engine">等待跟踪服务…</small></p>
+              </div>
+
+              <button class="primary-button confirm-subject-button" id="continue-camera-button" type="button" disabled>
+                下一步：生成直拍 <span>→</span>
+              </button>
+              <button class="secondary-button" id="back-to-selection" type="button">← 返回重新选择人物</button>
+            </aside>
+          </div>
+        </section>
+
+        <section id="export-stage" class="stage-section" hidden>
+          <div class="export-layout">
+            <article class="export-preview-card">
+              <header>
+                <div>
+                  <p class="eyebrow" id="render-preview-eyebrow">直拍预览</p>
+                  <h2>预览成片</h2>
+                </div>
+                <span class="build-badge">阶段 4 · Render Studio</span>
+              </header>
+
+              <div class="portrait-preview-shell" id="render-preview-shell">
+                <video id="render-preview-video" controls playsinline hidden></video>
+                <div class="render-loading" id="render-loading">
+                  <span class="spinner"></span>
+                  <strong id="render-status">正在把人物轨迹转换为镜头轨迹…</strong>
+                  <small id="render-status-detail">平滑、死区、速度限制与 9:16 裁剪</small>
+                </div>
+                <div class="render-error" id="render-error" hidden>
+                  <span>!</span>
+                  <strong id="render-error-title">预览生成失败</strong>
+                  <p id="render-error-hint">请检查本地 FFmpeg 后重试。</p>
+                  <button class="secondary-button" id="retry-render" type="button">重新生成预览</button>
+                </div>
+              </div>
+
+              <footer class="camera-qa-strip" id="camera-qa-strip" hidden></footer>
+            </article>
+
+            <aside class="export-control-card">
+              <p class="eyebrow">成片设置</p>
+              <h2 id="render-settings-title">选择直拍效果</h2>
+
+              <fieldset class="camera-options output-mode-options">
+                <legend>直拍类型</legend>
+                <label>
+                  <input type="radio" name="output-mode" value="vertical" checked />
+                  <span><strong>生成竖屏直拍</strong><small>9:16 动态裁剪并跟随人物</small></span>
+                </label>
+                <label>
+                  <input type="radio" name="output-mode" value="horizontal-focus" />
+                  <span><strong>生成横屏直拍</strong><small>保持横屏比例，支持放大与两侧柔焦</small></span>
+                </label>
+              </fieldset>
+
+              <div id="vertical-camera-controls">
+                <fieldset class="camera-options">
+                  <legend>人物大小</legend>
+                  <label><input type="radio" name="framing" value="wide" /><span><strong id="framing-wide-title">全身宽松</strong><small id="framing-wide-detail">动作幅度大时使用</small></span></label>
+                  <label><input type="radio" name="framing" value="standard" checked /><span><strong id="framing-standard-title">标准直拍</strong><small id="framing-standard-detail">人物约占 2/3，脚底约留 8%</small></span></label>
+                  <label><input type="radio" name="framing" value="close" /><span><strong id="framing-close-title">近景突出</strong><small id="framing-close-detail">完整身体范围内放大</small></span></label>
+                </fieldset>
+
+                <fieldset class="camera-options">
+                  <legend>镜头跟随</legend>
+                  <label><input type="radio" name="motion" value="stable" /><span><strong>稳定</strong><small>减少镜头移动</small></span></label>
+                  <label><input type="radio" name="motion" value="balanced" checked /><span><strong>自然</strong><small>稳定与跟随平衡</small></span></label>
+                  <label><input type="radio" name="motion" value="responsive" /><span><strong>灵敏</strong><small>更快跟上大幅移动</small></span></label>
+                </fieldset>
+              </div>
+
+              <div class="horizontal-focus-note" id="horizontal-focus-note" hidden>
+                <strong>横屏主体突出</strong>
+                <small>人物保持清晰，左右背景自然柔焦。</small>
+              </div>
+
+              <div class="render-metrics">
+                <div><strong id="render-metric-ratio">9:16</strong><small>输出比例</small></div>
+                <div><strong id="render-metric-zoom">—</strong><small>实际放大</small></div>
+                <div><strong id="render-metric-time">—</strong><small>预览耗时</small></div>
+              </div>
+
+              <div class="camera-plan-note">
+                <span class="local-dot"></span>
+                <p><strong>自然镜头轨迹</strong><small id="camera-plan-summary">等待生成镜头计划…</small></p>
+              </div>
+
+              <button class="secondary-button regenerate-button" id="regenerate-preview" type="button">
+                生成当前类型的低清预览
+              </button>
+              <button class="primary-button export-button" id="export-video-button" type="button" disabled>
+                导出高清竖屏 MP4 <span>↓</span>
+              </button>
+              <a class="secondary-button download-link" id="download-video-link" href="#" download hidden>再次下载成片</a>
+              <button class="text-button back-track-button" id="back-to-tracking" type="button">← 返回检查身份轨迹</button>
+            </aside>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="principles-dialog" id="principles-dialog">
+      <form method="dialog">
+        <button class="dialog-close" aria-label="关闭">×</button>
+        <p class="eyebrow">产品判断</p>
+        <h2>自然语言负责表达，视觉交互负责消歧。</h2>
+        <p>
+          “最右边的人”可能指全画面最右侧，也可能指五位舞者中最右侧。让 AI 先识别候选人物，再由用户点击确认，能用一次低成本交互锁定真实意图。
+        </p>
+        <div class="dialog-flow">
+          <span>用户裁片</span><i>→</i><span>AI 找人</span><i>→</i><span>用户确认</span><i>→</i><span>AI 执行</span>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script defer src="./app.js"></script>
+  </body>
+</html>
