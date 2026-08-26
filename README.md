@@ -100,8 +100,6 @@ python server.py
 
 - [产品规格](./docs/PRODUCT_SPEC.md)
 - [建设路线图](./docs/ROADMAP.md)
-- [作品集叙事](./docs/PORTFOLIO_CASE_STUDY.md)
-- [面试拷打题库](./docs/INTERVIEW_CHALLENGES.md)
 - [关键决策记录](./docs/DECISION_LOG.md)
 - [验证记录](./docs/VALIDATION_LOG.md)
 
